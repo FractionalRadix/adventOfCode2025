@@ -15,7 +15,7 @@ class Day01Solver {
         println("Actually, the password is ${answerPart2}.") // 5937
     }
 
-    fun solvePart1(instructions: List<Pair<Char, Int>>): Int {
+    private fun solvePart1(instructions: List<Pair<Char, Int>>): Int {
         var cur = 50
         var count = 0
         for (instruction in instructions) {
@@ -41,7 +41,7 @@ class Day01Solver {
 
     }
 
-    fun solvePart2(instructions: List<Pair<Char, Int>>): Int {
+    private fun solvePart2(instructions: List<Pair<Char, Int>>): Int {
         var cur = 50
         var count = 0
         for (instruction in instructions) {
