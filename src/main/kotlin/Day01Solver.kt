@@ -9,8 +9,6 @@ class Day01Solver {
         val instructions = inputAsStrings
             .map { s -> Pair(s[0], Integer.parseInt(s.drop(1))) }
 
-        instructions.forEach { x -> println(x) }
-
         val answerPart1 = solvePart1(instructions)
         println("The password is ${answerPart1}.") // 1011
         val answerPart2 = solvePart2(instructions)
@@ -33,8 +31,6 @@ class Day01Solver {
             if (cur >= 100) {
                 cur %= 100
             }
-
-            println(cur)
 
             if (cur == 0) {
                 count++
@@ -73,9 +69,6 @@ class Day01Solver {
 
                 cur = (cur + remainder) % 100
             }
-
-            println("$cur ($count)")
-
         }
 
         return count
