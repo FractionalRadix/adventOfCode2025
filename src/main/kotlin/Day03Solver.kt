@@ -2,10 +2,11 @@ package com.cormontia
 
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
+import kotlin.math.max
 
 class Day03Solver {
     fun solve() {
-        val inputAsStrings: List<String> = Path("""src/main/resources/inputFiles/AoCDay03.txt""").readLines()
+        val inputAsStrings: List<String> = Path("""src/main/resources/inputFiles/AoCDay03_sample.txt""").readLines()
 
         val answerPart1 = solvePart1(inputAsStrings)
         println("The total output joltage is: $answerPart1.") // 17095
@@ -22,6 +23,9 @@ class Day03Solver {
     }
 
     fun solvePart2(ratings: List<String>): Long {
+
+        testMaxWithIndex()
+
         var result = 0L
         for (rating in ratings) {
             result += joltage12(rating)
@@ -52,12 +56,59 @@ class Day03Solver {
 
     private fun joltage12(input: String): Long {
         // First, turn the string into individual digits.
-        val digits = input.map { ch -> ch.digitToInt() }
-        // Find the highest element.
-        var highest = digits.max()
+        val digits = input
+            .map { ch -> ch.digitToInt() }
+            .toMutableList()
 
+        //TODO!~ Don't just drop the index, drop EVERYTHING before it!
 
-        return 0L // TODO!~
+        var result = 0L
+        var dropped = 11
+        while (dropped >= 0) {
+            // Find the highest element.
+            val (highest, idx) = maxWithIndex(digits.dropLast(dropped))
+            // Remove it from the list.
+            digits.removeAt(idx)
+            //TODO?~ Also remove what came before that highest number...?
+            // Add it to the result.
+            result = 10 * result + highest
+            // Decrease the amount of positions to drop.
+            dropped--
+        }
+
+        println("$input -> $result")
+        return result
+    }
+
+    //TODO?~ Move to a utilities folder?
+    /**
+     * Given a non-empty list of ints, give the value and index of the maximum.
+     * E.g. [3,5,6,3,4] will result in 6 (the maximum) and 2 (the index of that element).
+     * @param list A non-empty list of integers.
+     * @return A pair (value, index) showing the highest value in the list, and its index.
+     */
+    fun maxWithIndex(list: List<Int>): Pair<Int, Int> {
+        var idx = 0
+        var max = list[idx]
+
+        for (i in 1 until list.size) {
+            if (list[i] > max) {
+                idx = i
+                max = list[idx]
+            }
+        }
+
+        return  Pair(max, idx)
+    }
+
+    //TODO!~ Add a unit test framework and add this test to it.
+    private fun testMaxWithIndex() {
+        val (val1, idx1) = maxWithIndex(listOf(3, 5, 6, 3, 4))
+        if (val1 != 6 || idx1 != 2) {
+            println("testMaxWithIndex: unit test failed!")
+        } else {
+            println("testMaxWithIndex: unit test succeeded!")
+        }
     }
 
 }
