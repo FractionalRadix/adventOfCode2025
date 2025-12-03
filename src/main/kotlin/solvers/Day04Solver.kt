@@ -1,11 +1,11 @@
-package com.cormontia
+package com.cormontia.solvers
 
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
 
-class Day11Solver {
+class Day04Solver {
     fun solve() {
-        val inputAsStrings: List<String> = Path("""src/main/resources/inputFiles/AoCDay11_sample.txt""").readLines()
+        val inputAsStrings: List<String> = Path("""src/main/resources/inputFiles/AoCDay04_sample.txt""").readLines()
 
         val answerPart1 = solvePart1()
         println(answerPart1)

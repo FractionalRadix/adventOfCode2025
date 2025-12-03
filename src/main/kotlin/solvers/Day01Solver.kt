@@ -1,4 +1,4 @@
-package com.cormontia
+package com.cormontia.solvers
 
 import kotlin.io.path.Path
 import kotlin.io.path.readLines

@@ -1,4 +1,4 @@
-package com.cormontia
+package com.cormontia.solvers
 
 import java.lang.Long.parseLong
 import kotlin.io.path.Path
