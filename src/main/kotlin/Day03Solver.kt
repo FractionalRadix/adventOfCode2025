@@ -6,12 +6,12 @@ import kotlin.math.max
 
 class Day03Solver {
     fun solve() {
-        val inputAsStrings: List<String> = Path("""src/main/resources/inputFiles/AoCDay03_sample.txt""").readLines()
+        val inputAsStrings: List<String> = Path("""src/main/resources/inputFiles/AoCDay03.txt""").readLines()
 
         val answerPart1 = solvePart1(inputAsStrings)
         println("The total output joltage is: $answerPart1.") // 17095
         val answerPart2 = solvePart2(inputAsStrings)
-        println("Actually, the total output joltage is: $answerPart2.")
+        println("Actually, the total output joltage is: $answerPart2.") // 168794698570517
     }
 
     fun solvePart1(ratings: List<String>): Long {
@@ -23,9 +23,6 @@ class Day03Solver {
     }
 
     fun solvePart2(ratings: List<String>): Long {
-
-        testMaxWithIndex()
-
         var result = 0L
         for (rating in ratings) {
             result += joltage12(rating)
@@ -56,27 +53,19 @@ class Day03Solver {
 
     private fun joltage12(input: String): Long {
         // First, turn the string into individual digits.
-        val digits = input
+        var digits = input
             .map { ch -> ch.digitToInt() }
-            .toMutableList()
+            .toList()
 
-        //TODO!~ Don't just drop the index, drop EVERYTHING before it!
-
+        // Then, keep taking the highest value that leaves enough "tail".
         var result = 0L
-        var dropped = 11
-        while (dropped >= 0) {
-            // Find the highest element.
-            val (highest, idx) = maxWithIndex(digits.dropLast(dropped))
-            // Remove it from the list.
-            digits.removeAt(idx)
-            //TODO?~ Also remove what came before that highest number...?
-            // Add it to the result.
-            result = 10 * result + highest
-            // Decrease the amount of positions to drop.
-            dropped--
+
+        for (tailLen in 11 downTo 0) {
+            val (max1, idx1) = maxWithIndex(digits.dropLast(tailLen))
+            digits = digits.drop(idx1 + 1)
+            result = 10 * result + max1
         }
 
-        println("$input -> $result")
         return result
     }
 
