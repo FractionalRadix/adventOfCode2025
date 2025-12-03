@@ -4,8 +4,8 @@ package com.cormontia
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 fun main() {
     //Day01Solver().solve()
-    Day02Solver().solve()
-    //Day03Solver().solve()
+    //Day02Solver().solve()
+    Day03Solver().solve()
     //Day04Solver().solve()
     //Day05Solver().solve()
     //Day06Solver().solve()

@@ -14,9 +14,9 @@ class Day02Solver {
             .map { elt -> Pair(elt[0], elt[1])}
 
         val answerPart1 = solvePart1(list)
-        println("The sum of the invalid IDs is $answerPart1 .") // 17077011375
+        println("The sum of the invalid IDs is $answerPart1.") // 17077011375
         val answerPart2 = solvePart2(list)
-        println("Actually, the sum of invalid IDs is $answerPart2 .") // 36037497037
+        println("Actually, the sum of invalid IDs is $answerPart2.") // 36037497037
     }
 
     private fun solvePart1(ranges: List<Pair<String, String>>): Long {

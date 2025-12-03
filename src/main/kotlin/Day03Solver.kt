@@ -8,9 +8,9 @@ class Day03Solver {
         val inputAsStrings: List<String> = Path("""src/main/resources/inputFiles/AoCDay03.txt""").readLines()
 
         val answerPart1 = solvePart1(inputAsStrings)
-        println("The total output joltage is: $answerPart1 .") // 17095
+        println("The total output joltage is: $answerPart1.") // 17095
         val answerPart2 = solvePart2(inputAsStrings)
-        println("The corrected output joltage is: $answerPart2 .")
+        println("Actually, the total output joltage is: $answerPart2.")
     }
 
     fun solvePart1(ratings: List<String>): Long {
