@@ -15,6 +15,8 @@ class Day02Solver {
 
         val answerPart1 = solvePart1(list)
         println("The sum of the invalid IDs is $answerPart1 .") // 17077011375
+        val answerPart2 = solvePart2(list)
+        println("Actually, the sum of invalid IDs is $answerPart2 .") // 36037497037
     }
 
     private fun solvePart1(ranges: List<Pair<String, String>>): Long {
@@ -69,5 +71,47 @@ class Day02Solver {
         }
 
         return result
+    }
+
+    fun solvePart2(ranges: List<Pair<String, String>>): Long {
+        var result = 0L
+
+        for (range in ranges) {
+            result += sumOfNewInvalidIDsInRange(range.first, range.second)
+        }
+
+        return result
+    }
+
+    fun sumOfNewInvalidIDsInRange(start: String, end: String): Long {
+        var result = 0L
+        val startAsLong = parseLong(start)
+        val endAsLong = parseLong(end)
+        for (candidate in startAsLong .. endAsLong) {
+            if (isRepeatingString(candidate)) {
+                result += candidate
+            }
+        }
+        return result
+    }
+
+    fun isRepeatingString(candidate: Long): Boolean {
+        val candidateAsString = candidate.toString()
+        val candidateLength = candidateAsString.length
+        for (prefixLen in 1..1 + (candidateLength / 2)) {
+
+            var multiplier = 2
+            while (multiplier * prefixLen <= candidateLength) {
+                if (multiplier * prefixLen == candidateLength) {
+                    val pattern = candidateAsString.take(prefixLen).repeat(multiplier)
+                    if (pattern == candidateAsString) {
+                        return true
+                    }
+                }
+                multiplier++
+            }
+
+        }
+        return false
     }
 }

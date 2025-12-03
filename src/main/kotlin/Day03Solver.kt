@@ -1,0 +1,63 @@
+package com.cormontia
+
+import kotlin.io.path.Path
+import kotlin.io.path.readLines
+
+class Day03Solver {
+    fun solve() {
+        val inputAsStrings: List<String> = Path("""src/main/resources/inputFiles/AoCDay03.txt""").readLines()
+
+        val answerPart1 = solvePart1(inputAsStrings)
+        println("The total output joltage is: $answerPart1 .") // 17095
+        val answerPart2 = solvePart2(inputAsStrings)
+        println("The corrected output joltage is: $answerPart2 .")
+    }
+
+    fun solvePart1(ratings: List<String>): Long {
+        var result = 0L
+        for (rating in ratings) {
+            result += joltage(rating)
+        }
+        return result
+    }
+
+    fun solvePart2(ratings: List<String>): Long {
+        var result = 0L
+        for (rating in ratings) {
+            result += joltage12(rating)
+        }
+        return result
+    }
+
+    private fun joltage(input: String): Int {
+        // First, turn the string into individual digits.
+        val digits = input.map { ch -> ch.digitToInt() }
+        // Find the highest element.
+        var highest = digits.max()
+        // Find the highest element after that.
+        var skip = 1 + digits.indexOfFirst { digit -> digit == highest }
+        // A special case is when this is the last element; when skip == digits.length .
+        if (skip == digits.size) {
+            highest = digits.dropLast(1).max()
+            skip = 1 + digits.indexOfFirst { digit -> digit == highest }
+            val remainingDigits = digits.drop(skip)
+            val nextHighest = remainingDigits.max()
+            return 10 * highest + nextHighest
+        } else {
+            val remainingDigits = digits.drop(skip)
+            val nextHighest = remainingDigits.max()
+            return 10 * highest + nextHighest
+        }
+    }
+
+    private fun joltage12(input: String): Long {
+        // First, turn the string into individual digits.
+        val digits = input.map { ch -> ch.digitToInt() }
+        // Find the highest element.
+        var highest = digits.max()
+
+
+        return 0L // TODO!~
+    }
+
+}
