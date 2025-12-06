@@ -6,7 +6,7 @@ import kotlin.io.path.readLines
 
 class Day05Solver {
     fun solve() {
-        val inputAsStrings: List<String> = Path("""src/main/resources/inputFiles/AoCDay05_sample.txt""").readLines()
+        val inputAsStrings: List<String> = Path("""src/main/resources/inputFiles/AoCDay05.txt""").readLines()
 
         val ranges = mutableListOf<LongRange>()
         val ingredients = mutableListOf<Long>()
@@ -26,7 +26,7 @@ class Day05Solver {
         val answerPart1 = solvePart1(ranges, ingredients)
         println("There are $answerPart1 fresh ingredients.") // 613
         val answerPart2 = solvePart2(ranges)
-        println(answerPart2)
+        println("There are $answerPart2 ingredients considered to be fresh.") // 336495597913098
     }
 
     fun solvePart1(ranges: List<LongRange>, ingedients: List<Long>): Long {
@@ -61,17 +61,18 @@ class Day05Solver {
             if (overlap.usedRanges.isEmpty()) {
                 finalSet.add(overlap.combinedRange)
             } else {
-                println("Adding: ${overlap.combinedRange}")
                 bucket.add(overlap.combinedRange)
             }
-
-            println("Bucket: $bucket")
-            println("Final set: $finalSet")
-
         }
 
+        // Sum the ranges.
+        var result = 0L
+        for (range in finalSet) {
+            val rangeSize = range.last() - range.first() + 1
+            result += rangeSize
+        }
 
-        return 0L
+        return result
     }
 
     data class OverlapResult(
@@ -96,8 +97,8 @@ class Day05Solver {
         // This is the combined new range.
         var newRange = subject
         if (overlappingRanges.isNotEmpty()) {
-            val start = overlappingRanges.minBy { range -> range.first }.first
-            val end = overlappingRanges.maxBy { range -> range.last }.last
+            val start = overlappingRanges.minBy { range -> range.first }.first.coerceAtMost(subject.first)
+            val end = overlappingRanges.maxBy { range -> range.last }.last.coerceAtLeast(subject.last)
             newRange = LongRange(start, end)
         }
         // Return the new range and the rest.
@@ -122,27 +123,6 @@ class Day05Solver {
         } else {
             // rangeB.first <= rangeA.first
             return rangeB.last >= rangeA.first
-        }
-    }
-
-    fun joinRanges(rangeA: LongRange, rangeB: LongRange): List<LongRange> {
-        var firstRange: LongRange
-        var secondRange: LongRange
-
-        if (rangeA.first < rangeB.first) {
-            firstRange = rangeA
-            secondRange = rangeB
-        } else {
-            firstRange = rangeB
-            secondRange = rangeA
-        }
-
-        if (firstRange.last < secondRange.first) {
-            return listOf(firstRange, secondRange)
-        } else {
-            // WAIT! If secondRange.last < firstRange.last you'd miss out!
-            val joinedRange = LongRange(firstRange.first,  Math.max(firstRange.last, secondRange.last))
-            return listOf(joinedRange)
         }
     }
 }
