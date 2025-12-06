@@ -1,20 +1,26 @@
 package com.cormontia.solvers
 
-import kotlin.io.path.Path
-import kotlin.io.path.readLines
+import com.cormontia.utilities.Coor
 
 class Day06Solver {
-    fun solve() {
-        val inputAsStrings: List<String> = Path("""src/main/resources/inputFiles/AoCDay06_sample.txt""").readLines()
 
-        val answerPart1 = solvePart1()
-        println(answerPart1)
-        val answerPart2 = solvePart2()
-        println(answerPart2)
-    }
-
-    fun solvePart1(): Long {
-        return 0L
+    fun solvePart1(numberGrid: Map<Coor, Long>, operations: List<String>): Long {
+        var result = 0L
+        var col = 0L
+        for (operation in operations) {
+            val numbers = numberGrid.filter { elt -> elt.key.col == col  }.map { elt -> elt.value }
+            if (operation =="*") {
+                val product = numbers.fold( 1) { acc: Long, number: Long -> acc * number }
+                println("Product: $product")
+                result += product
+            } else {
+                val sum = numbers.fold(0) { acc: Long, number: Long -> acc + number }
+                println("Sum: $sum")
+                result += sum
+            }
+            col++
+        }
+        return result
     }
 
     fun solvePart2(): Long {
