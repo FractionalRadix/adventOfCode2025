@@ -10,7 +10,7 @@ fun main() {
     //Day03Solver().solve()
     //Day04Solver().solve()
     //Day05Solver().solve()
-    solve(Day06Solver())
+    Day06Solver().solve()
     //Day07Solver().solve()
     //Day08Solver().solve()
     //Day09Solver().solve()
