@@ -12,11 +12,11 @@ class Day07Solver {
 
         val answerPart1 = solvePart1(grid) // 1570
         println(answerPart1)
-        val answerPart2 = solvePart2()
+        val answerPart2 = solvePart2(grid) // 15118009521693
         println(answerPart2)
     }
 
-    fun solvePart1(grid: MutableMap<Coor, Char>): Long {
+    fun solvePart1(grid: Map<Coor, Char>): Long {
         val start = grid.keys.first { key -> grid[key] == 'S' }
         val maxRows = grid.keys.maxBy { key -> key.row }.row
         var splits = 0L
@@ -38,7 +38,28 @@ class Day07Solver {
         return splits
     }
 
-    fun solvePart2(): Long {
-        return 0L
+    fun solvePart2(grid: Map<Coor, Char>): Long {
+        val start = grid.keys.first { key -> grid[key] == 'S' }
+        val maxRows = grid.keys.maxBy { key -> key.row }.row
+
+        val beams = mutableMapOf<Long, Long>() // Maps beam idx to counter
+        beams[start.col] = 1
+        for (row in start.row .. maxRows) {
+            println("Row: $row  beams: $beams")
+            val oldBeams = mutableListOf<Long>()
+            oldBeams.addAll(beams.keys)
+            for (beam in oldBeams) {
+                if (grid[Coor(row, beam)] == '^') {
+                    val beamsAtThisPoint = beams[beam]!!
+                    // This number is removed, and added to the beams left and right.
+                    beams[beam] = 0
+                    beams[beam - 1] = (beams[beam - 1] ?: 0) + beamsAtThisPoint
+                    beams[beam + 1] = (beams[beam + 1] ?: 0) + beamsAtThisPoint
+                }
+            }
+        }
+
+        return beams.values.sum()
     }
+
 }
