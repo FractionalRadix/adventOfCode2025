@@ -45,7 +45,6 @@ class Day07Solver {
         val beams = mutableMapOf<Long, Long>() // Maps beam idx to counter
         beams[start.col] = 1
         for (row in start.row .. maxRows) {
-            println("Row: $row  beams: $beams")
             val oldBeams = mutableListOf<Long>()
             oldBeams.addAll(beams.keys)
             for (beam in oldBeams) {
