@@ -19,9 +19,9 @@ class Day08Solver {
             list.add(Coor3D(x,y,z))
         }
 
-        val answerPart1 = solvePart1(list) // 131150
-        println(answerPart1)
-        val answerPart2 = solvePart2()
+        //val answerPart1 = solvePart1(list) // 131150
+        //println(answerPart1)
+        val answerPart2 = solvePart2(list) // 2497445
         println(answerPart2)
     }
 
@@ -69,7 +69,49 @@ class Day08Solver {
     }
 
 
-    fun solvePart2(): Long {
+    fun solvePart2(list: List<Coor3D>): Long {
+        println("Making all pairs.")
+        val pairs = mutableListOf<Pair<Coor3D, Coor3D>>()
+        //TODO?~ Use "forEachIndexed"
+        for (box1Index in list.indices) {
+            for (box2index in (box1Index + 1) until list.size) {
+                val box1 = list[box1Index]
+                val box2 = list[box2index]
+                pairs.add(Pair(box1, box2))
+            }
+        }
+
+        println("Determining the distances between the pairs.")
+        val distances = pairs
+            .map { (a,b) -> Triple(a, b, a.distance(b))}
+            .sortedBy { (_, _, dist) -> dist }
+
+        // Make a set of circuits.
+        // Initially ever set contains only one box.
+        val circuits = list.map { box -> setOf(box) }.toMutableSet()
+        // For every pair, find the circuits that these boxes are in.
+        for ((box1, box2, _) in distances) {
+            //println(pair)
+            val circuit1 = circuits.first { circuit -> circuit.contains(box1) }
+            val circuit2 = circuits.first { circuit -> circuit.contains(box2) }
+            if (circuit1 != circuit2) {
+                val newCircuit = mutableSetOf<Coor3D>()
+                newCircuit.addAll(circuit1)
+                newCircuit.addAll(circuit2)
+                if (newCircuit.size == list.size) {
+                    println("Done!")
+                    val result = box1.x * box2.x
+                    println("$box1==$box1 box2==$box2 product of x coordinates is $result.")
+                    return result
+
+                }
+                circuits.remove(circuit1)
+                circuits.remove(circuit2)
+                circuits.add(newCircuit)
+            }
+        }
+
+        //TODO!~
         return 0L
     }
 }
