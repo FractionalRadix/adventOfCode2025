@@ -11,9 +11,9 @@ class Day07Solver {
         val grid = buildGridMap(inputAsStrings)
 
         val answerPart1 = solvePart1(grid) // 1570
-        println(answerPart1)
+        println("The beam is split $answerPart1 times.")
         val answerPart2 = solvePart2(grid) // 15118009521693
-        println(answerPart2)
+        println("A single tachyon would end up on $answerPart2 timelines.")
     }
 
     fun solvePart1(grid: Map<Coor, Char>): Long {
