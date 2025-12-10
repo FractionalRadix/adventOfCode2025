@@ -2,7 +2,6 @@ package com.cormontia.solvers
 
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
-import kotlin.math.min
 
 class Day10Solver {
     fun solve() {
@@ -89,8 +88,10 @@ class Day10Solver {
         var sum = 0L
 
         for (machine in machines) {
+            machine.print()
+            println()
             //TODO!~ Also SOLVE the equations...
-            machine.equations()
+            machine.determineEquations()
         }
 
         return sum
@@ -160,11 +161,21 @@ class Day10Solver {
         val values: List<Long>
     )
 
+    data class Equation(val variables: List<String>, val sum: Long) {
+        fun print() {
+            val lhs = variables.joinToString(" + ")
+            val rhs = sum.toString()
+            println("$lhs = $rhs")
+        }
+    }
+
     class Machine(
         val desiredIndicatorState: MachineState,
         val buttons: List<List<Int>>,
         val joltageRequirements: List<Long>,
     ) {
+        val equations = mutableListOf<Equation>()
+
         fun pushButton(button: Int, state: MachineState): MachineState {
             val newState = mutableListOf<Boolean>()
             newState.addAll(state.indicators)
@@ -189,21 +200,28 @@ class Day10Solver {
             return Joltages(newJoltageValues)
         }
 
-        fun equations() {
-            val variables = "abcdefghijklmnopqrstuvwxyz"
+        /***
+         * For part 2. It looks like a linear programming problem.
+         * The goal is to find a set of integer values (0 or higher) that satisfies the equation.
+         * The sum of these values should be as small as possible/
+         */
+        fun determineEquations() {
+            val variableNames = "abcdefghijklmnopqrstuvwxyz"
 
             for (colIdx in 0 until joltageRequirements.size) {
-                var equation = ""
+                val variables = mutableListOf<String>()
 
                 for (buttonIdx in 0 until buttons.size) {
-                    val variable = variables[buttonIdx]
+                    //val variable = variableNames[buttonIdx].toString()
+                    val variable = "n$buttonIdx"
                     val button = buttons[buttonIdx]
                     if (button.contains(colIdx)) {
-                        equation += "+ $variable"
+                        variables.add(variable)
                     }
                 }
-                equation += "= ${joltageRequirements[colIdx]}"
-                println(equation)
+                val equation = Equation(variables, joltageRequirements[colIdx])
+                equation.print()
+                equations.add(equation)
             }
 
 
