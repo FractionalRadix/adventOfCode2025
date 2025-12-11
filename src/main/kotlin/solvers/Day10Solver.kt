@@ -91,7 +91,10 @@ class Day10Solver {
             machine.print()
             println()
             //TODO!~ Also SOLVE the equations...
-            machine.determineEquations()
+            val equations = machine.determineEquations()
+            for (equation in equations) {
+                equation.print()
+            }
         }
 
         return sum
@@ -152,7 +155,6 @@ class Day10Solver {
     }
 
 
-
     data class MachineState(
         val indicators: List<Boolean>
     )
@@ -161,21 +163,61 @@ class Day10Solver {
         val values: List<Long>
     )
 
-    data class Equation(val variables: List<String>, val sum: Long) {
+    data class Equation(val variables: List<Pair<Int,String>>, val sum: Long) {
         fun print() {
-            val lhs = variables.joinToString(" + ")
+            val lhs = variables.joinToString(" + ") { pair -> "${pair.first} * ${pair.second}" }
             val rhs = sum.toString()
             println("$lhs = $rhs")
         }
     }
+
+    fun eliminate(equations: List<Equation>): List<Equation> {
+        val result = mutableListOf<Equation>()
+        val firstEquation = equations.first()
+        val firstVariable = firstEquation.variables.first()
+        //TODO!+ Substitute "n - [all these other variables]" in the other equations.
+
+        for (nextEquation in equations.drop(1)) {
+            if (nextEquation.variables.contains(firstVariable)) {
+                //TODO!+ Determine the new equation, that you get when you substitute a new value for "firstVariable".
+                //TODO!+ Add that new equation to the result.
+                // For example:
+                //    n0 + n1 + n5 + n6 = 51
+                //    n0 + n1 + n2 + n3 + n4 = 34
+                // This brings
+                //    n0 = - n1 - n5 - n6 + 51
+                //    n0 + n1 + n2 + n3 + n4 = 34
+                // So we get
+                //    - n1 - n5 - n6  + n1 + n2 + n3 + n4 = 34 - 51
+                // AFTER that we can eliminate:
+                //    - n5 - n6 + n2 + n3 + n4 = 34 - 51
+                //
+                // Or from the sample dataset:
+                //   1 * n2 + 1 * n3 = 3
+                //   1 * n0 + 1 * n3 = 5
+                //   1 * n1 + 1 * n2 + 1 * n5 = 4
+                //   1 * n0 + 1 * n1 + 1 * n4 = 7
+                // Hence n2 = 3 - n3 and the third equation becomes
+                //   1 * n1 + 1 * (3 - n3) + 1 * n5 = 4
+
+
+
+
+
+            } else {
+                result += nextEquation
+            }
+        }
+
+        return result
+    }
+
 
     class Machine(
         val desiredIndicatorState: MachineState,
         val buttons: List<List<Int>>,
         val joltageRequirements: List<Long>,
     ) {
-        val equations = mutableListOf<Equation>()
-
         fun pushButton(button: Int, state: MachineState): MachineState {
             val newState = mutableListOf<Boolean>()
             newState.addAll(state.indicators)
@@ -205,26 +247,24 @@ class Day10Solver {
          * The goal is to find a set of integer values (0 or higher) that satisfies the equation.
          * The sum of these values should be as small as possible/
          */
-        fun determineEquations() {
+        fun determineEquations(): List<Equation> {
+            val equations = mutableListOf<Equation>()
             val variableNames = "abcdefghijklmnopqrstuvwxyz"
 
             for (colIdx in 0 until joltageRequirements.size) {
-                val variables = mutableListOf<String>()
+                val variables = mutableListOf<Pair<Int,String>>()
 
                 for (buttonIdx in 0 until buttons.size) {
                     //val variable = variableNames[buttonIdx].toString()
                     val variable = "n$buttonIdx"
                     val button = buttons[buttonIdx]
                     if (button.contains(colIdx)) {
-                        variables.add(variable)
+                        variables.add(Pair(+1, variable))
                     }
                 }
-                val equation = Equation(variables, joltageRequirements[colIdx])
-                equation.print()
-                equations.add(equation)
+                equations += Equation(variables, joltageRequirements[colIdx])
             }
-
-
+            return equations
         }
 
         fun isDesiredState(state: MachineState) =
