@@ -2,7 +2,6 @@ package com.cormontia.solvers
 
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
-import kotlin.math.max
 
 class Day11Solver {
     fun solve() {
@@ -16,9 +15,28 @@ class Day11Solver {
             edges[key] = values
         }
 
-        //for (k in edges.keys) {
-        //    println("Key: $k, targets: ${edges[k]}")
-        //}
+        /*
+        val testSet1 = mutableMapOf<String, List<String>>()
+        testSet1["svr"] = listOf("aaa", "bbb", "ccc")
+        testSet1["aaa"] = listOf("out")
+        testSet1["bbb"] = listOf("out")
+        testSet1["ccc"] = listOf("out")
+        println("3==${countPaths1(testSet1, "svr", "out")}")
+        println("3==${countPaths2(testSet1, "svr", "out")}")
+         */
+
+        val testSet2 = mutableMapOf<String, List<String>>()
+        testSet2["svr"] = listOf("aaa", "bbb")
+        testSet2["aaa"] = listOf("ccc")
+        testSet2["bbb"] = listOf("ccc")
+        testSet2["ccc"] = listOf("eee", "fff")
+        testSet2["eee"] = listOf("out")
+        testSet2["fff"] = listOf("out")
+        println("4==${countPaths1(testSet2, "svr", "out")}")
+        println("4==${countPaths2(testSet2, "svr", "out")}")
+
+
+        println(countIncomingPaths(edges, "you", "out"))
 
         val answerPart1 = solvePart1(edges) // 599
         println(answerPart1)
@@ -32,12 +50,12 @@ class Day11Solver {
 
     fun solvePart2(edges: Map<String, List<String>>): Long {
 
-        val bottlenecks = findBottlenecks(edges)
-        println("Bottleneck nodes (should be 'ccc' and 'fff'): $bottlenecks.")
+        //val bottlenecks = findBottlenecks(edges)
+        //println("Bottleneck nodes  $bottlenecks.") // For sample input 2, should be "ccc" and "fff".
 
-        val fftToDac = countPaths2(edges, "fft", "dac", "out")
+        val fftToDac = countPaths2(edges, "fft", "dac")
         println("There are $fftToDac paths from 'fft' to 'dac'.")
-        val dacToFft = countPaths2(edges, "dac", "fft", "out")
+        val dacToFft = countPaths2(edges, "dac", "fft")
         println("There are $dacToFft paths from 'dac' to 'fft'.")
 
         // We assume this is a DAG.
@@ -46,16 +64,18 @@ class Day11Solver {
             // No path fromm FFT to DAC, so there are only paths from DAC to FFT.
             // And the only relevant paths are those from FFT to OUT.
             // The path is then SVR -*-> DAC -*-> FFT -*-> OUT
-            val svrToDac = countPaths2(edges, "svr", "dac", "out")
+            val svrToDac = countPaths2(edges, "svr", "dac")
             println("There are $svrToDac paths from 'svr' to 'dac'.")
             val fftToOut = countPaths1(edges, "fft", "out")
             println("There are $fftToOut from 'fft' to 'out'.")
 
             return svrToDac * dacToFft * fftToOut
         } else if (dacToFft == 0L) {
-            val svrToFft = countPaths2(edges, "svr", "fft", "out")
+            val svrToFft = countPaths2(edges, "svr", "fft")
             println("There are $svrToFft paths from 'svr' to 'fft'.")
-            val dacToOut = countPaths1(edges, "dac", "out")
+
+            //BUGGED! countPaths1 yields 18, countPaths2 yields 6165 . At least one of them is wrong.
+            val dacToOut = countPaths2(edges, "dac", "out")
             println("There are $dacToOut from 'dac' to 'out'.")
             return svrToFft * fftToDac * dacToOut
         } else {
@@ -64,7 +84,7 @@ class Day11Solver {
         }
     }
 
-    fun countPaths2(edges: Map<String, List<String>>, start: String, finish: String, abort: String): Long {
+    fun countPaths2(edges: Map<String, List<String>>, start: String, finish: String): Long {
         val nodeList = mutableListOf<String>()
         val pathCount = mutableMapOf<String, Long>() // Maps node to the nr of paths going there.
 
@@ -74,9 +94,6 @@ class Day11Solver {
             for (node in nodeList) {
                 if (node == finish) {
                     //pathCount[finish] = pathCount[finish]!! + 1
-                } else if (node == abort) {
-                    //TODO?+
-                    println("ABORT!")
                 } else {
                     val nextNodes = edges[node] ?: emptyList()
                     val toBeRemoved = mutableSetOf<String>()
@@ -101,6 +118,8 @@ class Day11Solver {
         }
 
         pathCount.forEach { (nodeName, count) -> println("pathCount[$nodeName]==$count")  }
+
+        // This is not the path count... the path count is the PRODUCT of everything going in here.
 
         return pathCount[finish] ?: 0
     }
@@ -168,6 +187,27 @@ class Day11Solver {
             nodeList.addAll(nextList)
         }
 
+        return counter
+    }
+
+    //TODO?- Not sure if it's correct, but it's a depth-first search that is slow.
+    /**
+     * Count the number of paths from `start` to `finish`.
+     */
+    fun countIncomingPaths(edges: Map<String, List<String>>, start: String, finish: String): Long {
+        // This time, we try it recursively.
+        // First, find all paths that go to `finish`.
+        val incomingEdges = edges.filter { (_, targetNodeList) -> targetNodeList.contains(finish) }
+        var counter = 0L
+        for (prev in incomingEdges.keys) {
+            //print("$prev ")
+            if (prev == start) {
+                return 1L
+            } else {
+                counter += countIncomingPaths(edges, start, prev)
+            }
+            print("$counter ")
+        }
         return counter
     }
 }

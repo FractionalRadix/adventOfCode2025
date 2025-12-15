@@ -47,28 +47,43 @@ class Day09Solver {
         val rectangles = buildRectangles(redTiles)
 
         println("Checking ${rectangles.size} rectangles.")
-
-        // First filter: select all rectangles that do not have a red tile "properly inside" them.
-
-        //var candidates = rectanglesWithoutRedTilesInside(rectangles, redTiles)
-        //TODO!~ This second one is too strict :-(
-        var candidates = rectanglesWithoutRedTilesInside2(rectangles, redTiles)
-
-
-        println("Selected ${candidates.size} candidates.")
-        var sizes = candidates.map { r -> r.size() }.toSet()
+        var sizes = rectangles.map { r -> r.size() }.toSet()
         println("There are ${sizes.size} different sizes: $sizes.")
 
-        // Second filter: select all rectangles that don't have a line segment straight through it.
-        candidates = rectanglesWithoutLinesCrossingThem(candidates, outline)
-
+        // First filter: select all rectangles that do not have a red tile "properly inside" them.
+        var candidates = rectanglesWithoutRedTilesInside(rectangles, redTiles)
         println("Selected ${candidates.size} candidates.")
         sizes = candidates.map { r -> r.size() }.toSet()
         println("There are ${sizes.size} different sizes: $sizes.")
 
+        // Second filter: select all rectangles that don't have a horizontal line segment straight through them.
+        candidates = candidates.filter { r -> !isRectangleCrossedByHorizontalLineSegment(r, outline) }
+        println("Selected ${candidates.size} candidates.")
+        sizes = candidates.map { r -> r.size() }.toSet()
+        println("There are ${sizes.size} different sizes: $sizes.")
+
+        // Third filter: select all rectangles that don't have a vertical line segment straight through them.
+        candidates = candidates.filter { r -> !isRectangleCrossedByVerticalLineSegment(r, outline) }
+        println("Selected ${candidates.size} candidates.")
+        sizes = candidates.map { r -> r.size() }.toSet()
+        println("There are ${sizes.size} different sizes: $sizes.")
+
+
         //TODO!~ FOR TESTING.
         val badrects = candidates.filter { r -> r.size() == 40L }
         println(badrects)
+
+        /** Here is the edge case: Marked by the '!'
+         * ..............
+         * .......#XXX#..
+         * .......XXXXX..
+         * ..OOOOOOO!XX..
+         * ..OOOOOOOOXX..
+         * ..OOOOOOOOXX..
+         * .........XXX..
+         * ..!......#X#..
+         * ..............
+         */
 
 
         return sizes.max()
@@ -94,88 +109,99 @@ class Day09Solver {
     }
 
     /**
-     * Given a list of rectangles, select those that don't have red tiles inside them.
-     * The red tiles CAN be on the borders of the rectangle, as long as they're not the tiles that define the rectangle.
+     * Given a list rectangle and a list of line segments, determine if any of the <em>horizontal</em> line segments
+     * intersects with the rectangle.
+     * If the line segment is ON the top or bottom of the rectangle, we still keep the rectangle!
+     * @param rectangle A rectangle, defined by row and column coordinates.
+     * @param lines A list of line segments, defined by row and column coordinates.
+     * @return <code>true</code> if and only if (WE HOPE...!!!) at least one horizontal line segment crosses the rectangle.
      */
-    fun rectanglesWithoutRedTilesInside2(rectangles: List<Rectangle>, redTiles: List<Coor>): List<Rectangle> {
-        val candidates = mutableListOf<Rectangle>()
-        for (rect in rectangles) {
-
-            val tilesInside = redTiles
-                .filter { tile -> rect.contains(tile) }
-                .toMutableList()
-            // If the only "tiles inside" are p and q, we're good.
-            //TODO!~ TOO STRICT! This removes the "24" that is the right answer in the sample.
-            val condition1 = (tilesInside.size == 1 && tilesInside.contains(rect.p))
-            val condition2 = (tilesInside.size == 1 && tilesInside.contains(rect.q))
-            val condition3 = (tilesInside.size == 2 && tilesInside.contains(rect.p) && tilesInside.contains(rect.p))
-            val condition4 = tilesInside.isEmpty()
-
-            if (condition1 || condition2 || condition3 || condition4) {
-                candidates.add(rect)
-            }
-        }
-        return candidates
+    fun isRectangleCrossedByHorizontalLineSegment(rectangle: Rectangle, lines: List<Pair<Coor, Coor>>): Boolean {
+        val lineSegments = lines
+            .asSequence()
+            // Select only the horizontal line segments.
+            .filter { (p, q) -> p.row == q.row }
+            // Filter out the ones above the rectangle.
+            .filter { (p, _) -> p.row > rectangle.top() }
+            // Filter out the ones below the rectangle.
+            .filter { (p, _) -> p.row < rectangle.bottom() }
+            // Set them all in the same direction: p to the left, q to the right.
+            .map { (p, q) -> if (p.col < q.col) { Pair(p,q) } else { Pair(q,p) } }
+            // Filter out the ones to the left of the rectangle.
+            .filter { (_, q) -> q.col < rectangle.left() }
+            // Filter out the ones to the right of the rectangle.
+            .filter { (p, _) -> p.col > rectangle.right() }
+            //TODO!+ More filters
+        return lineSegments.any()
     }
 
-    fun rectanglesWithoutLinesCrossingThem(rectangles: List<Rectangle>, outline: List<Pair<Coor, Coor>>): List<Rectangle> {
-        val newCandidates = mutableListOf<Rectangle>()
-        newCandidates.addAll(rectangles)
-        for (rect in rectangles) {
-            val left = min(rect.p.col, rect.q.col)
-            val right = max(rect.p.col, rect.q.col)
-            val top = min(rect.p.row, rect.q.row)
-            val bottom = max(rect.p.row, rect.q.row)
-            for (line in outline) {
-
-                // First, horizontal line segments.
-                if (line.first.row == line.second.row) {
-                    // Is the "row" coordinate of the segment BETWEEN "top" and "bottom"?
-                    val row = line.first.row
-                    if (row in (top + 1)..< bottom) {
-                        // And if yes, is the LOW column coordinate BEFORE "left", and the HIGH colum coordinate AFTER "right"?
-                        val lowColumn = min(line.first.col, line.second.col)
-                        val highColumn = max(line.first.col, line.second.col)
-                        if (lowColumn < left && highColumn > right) {
-                            // Do NOT add this rectangle.
-                            newCandidates.remove(rect)
-                        }
-                    }
-                } else if (line.first.col == line.second.col) {
-                    // Second, vertical line segments
-                    val col = line.first.col
-                    if (col in (left + 1) ..< right) {
-                        val lowRow = min(line.first.row, line.second.row)
-                        val highRow = max(line.first.row, line.second.row)
-                        if (lowRow < top && highRow > bottom) {
-                            // Do NOt add this rectangle.
-                            newCandidates.remove(rect)
-                        }
-                    }
-                } else {
-                    // Should never reach here, all lines should be either horizontal or vertical.
-                    println("OOPS! Diagonal line detected! $line.")
-                }
-            }
-        }
-        return newCandidates
+    /**
+     * Given a list rectangle and a list of line segments, determine if any of the <em>vertical</em> line segments
+     * intersects with the rectangle.
+     * If the line segment is ON the left or right side of the rectangle, we still keep the rectangle!
+     * @param rectangle A rectangle, defined by row and column coordinates.
+     * @param lines A list of line segments, defined by row and column coordinates.
+     * @return <code>true</code> if and only if (WE HOPE...!!!) at least one vertical line segment crosses the rectangle.
+     */
+    fun isRectangleCrossedByVerticalLineSegment(rectangle: Rectangle, lines: List<Pair<Coor, Coor>>): Boolean {
+        val lineSegments = lines
+            .asSequence()
+            // Select only the vertical line segments.
+            .filter { (p, q) -> p.col == q.col }
+            // Filter out the ones left of the rectangle.
+            .filter { (p, _) -> p.col < rectangle.left() }
+            // Filter out the ones right of the rectangle.
+            .filter { (p, _) -> p.col > rectangle.right() }
+            // Set them all in the same direction: p above (lower row index), q below (higher row index)
+            .map { (p, q) -> if (p.row < q.row) { Pair(p,q) } else { Pair(q,p) } }
+            // Filter out the ones to the left of the rectangle.
+            .filter { (_, q) -> q.row > rectangle.bottom () }
+            // Filter out the ones to the right of the rectangle.
+            .filter { (p, _) -> p.row < rectangle.top() }
+        //TODO!+ More filters
+        return lineSegments.any()
     }
 
-    fun ALT_solvePart2(redTiles: List<Coor>): Long {
 
-        val outline = buildShapeOutline(redTiles)
+    /**
+     * Filter out all line segments that are completely to the left of the given rectangle.
+     * @param rectangle A rectangle, in a 2D space defined by rows and columns.
+     * @param lines A list of horizontal and vertical line segments, in a 2D space defined by rows and columns.
+     * @return The set of line segments, without those that are completely to the left of the rectangle.
+     */
+    fun filterLineSegmentsToTheLeftOf(rectangle: Rectangle, lines: List<Pair<Coor, Coor>>) =
+        lines.filter { (p,q) -> p.col < rectangle.left() && q.col < rectangle.left() }
 
-        val verticalLines = outline.filter { (p,q) -> p.col == q.col }
-        println("$verticalLines")
-        // lines0== [(Coor(row=1, col=11), Coor(row=7, col=11)), (Coor(row=7, col=9), Coor(row=5, col=9)),
-        //           (Coor(row=5, col=2), Coor(row=3, col=2)), (Coor(row=3, col=7), Coor(row=1, col=7))]
-        println(pointInsideVerticalLines(Coor(7,7), verticalLines)) // Should be: false
-        // lines1 == [(Coor(row=5, col=2), Coor(row=3, col=2)), (Coor(row=3, col=7), Coor(row=1, col=7))]
-        // lines2 == []
+    /**
+     * Filter out all line segments that are completely to the left of the given rectangle.
+     * @param rectangle A rectangle in a 2D space defined by rows and columns.
+     * @param lines A list of line segments in a 2D space defined by rows and columns.
+     * @return The set of line segments, without those that are completely to the right of the rectangle.
+     */
+    fun filterLineSegmentsToTheRightOf(rectangle: Rectangle, lines: List<Pair<Coor, Coor>>) =
+        lines.filter { (p,q) -> p.col > rectangle.right() && q.col > rectangle.right() }
 
-        println()
-        return 0L //TODO!~
-    }
+    /**
+     * Filter out all line segments that are completely above the given rectangle.
+     * Since this is a space defined by rows and columns, this filters out the line segments whose row coordinate
+     * is <em>lower</em> than that of the top of the rectangle!
+     * @param rectangle A rectangle in a 2D space defined by rows and columns.
+     * @param lines A list of line segments in a 2D space defined by rows and columns.
+     * @return The set of line segments, without those that are completely above the rectangle.
+     */
+    fun filterLineSegmentsAbove(rectangle: Rectangle, lines: List<Pair<Coor, Coor>>) =
+        lines.filter { (p, q) -> p.row < rectangle.top() && q.row < rectangle.top() }
+
+    /**
+     * Filter out all line segments that are completely below the given rectangle.
+     * Since this is a space defined by rows and columns, this filters out the line segments whose row coordinate
+     * is <em>higher</em> than that of the bottom of the rectangle!
+     * @param rectangle A rectangle in a 2D space defined by rows and columns.
+     * @param lines A list of line segments in a 2D space defined by rows and columns.
+     * @return The set of line segments, without those that are completely below the rectangle.
+     */
+    fun filterLineSegmentsBelow(rectangle: Rectangle, lines: List<Pair<Coor, Coor>>) =
+        lines.filter { (p, q) -> p.row > rectangle.bottom() && q.row > rectangle.bottom() }
 
     data class Rectangle(val p: Coor, val q: Coor) {
         fun size(): Long {
@@ -183,6 +209,11 @@ class Day09Solver {
             val colDist = abs(p.col - q.col) + 1
             return rowDist * colDist
         }
+
+        fun left() = min(p.col, q.col)
+        fun right() = max(p.col, q.col)
+        fun top() = min(p.row, q.row)
+        fun bottom() = max(p.row, q.row)
 
         fun contains(point: Coor): Boolean {
             val startRow = min(p.row, q.row)
@@ -206,7 +237,6 @@ class Day09Solver {
             val colInside = point.col in (startCol+1)..< endCol
             return rowInside && colInside
         }
-
 
         fun contains(line: Pair<Coor, Coor>): Boolean {
             //TODO?~ Is this assumption correct?
@@ -241,88 +271,6 @@ class Day09Solver {
         }
 
         return result
-    }
-
-
-
-    fun ALT_solvePart2_2(redTiles: List<Coor>): Long {
-
-        val outline = buildShapeOutline(redTiles)
-
-        val (verticalLines, horizontalLines) = outline.partition { (start, end) -> start.col == end.col }
-
-        println("Vertical lines: $verticalLines")
-        println("Horizontal lines: $horizontalLines")
-
-
-        for (tile1 in redTiles) {
-            for (tile2 in redTiles) {
-                val rect = Rectangle(tile1, tile2)
-                if (rectangleInside(rect, outline)) {
-                    println("Found one! size==${rect.size()}")
-                }
-            }
-        }
-
-
-        val test = false
-        if (test) {
-            //println(verticalLines)
-            //TEST CODE!
-            val maxRows = redTiles.maxOf { coor -> coor.row } + 2
-            val maxCols = redTiles.maxOf { coor -> coor.col } + 2
-            for (row in 0 until maxRows) {
-                for (col in 0 until maxCols) {
-                    val point = Coor(row, col)
-                    val insideVertical = pointInsideVerticalLines(point, verticalLines)
-                    val insideHorizontal = pointInsideHorizontalLines(point, horizontalLines)
-                    if (insideVertical && insideHorizontal) {
-                        print("#")
-                    } else {
-                        print(".")
-                    }
-                }
-                println()
-            }
-        }
-
-        return 0L //TODO!~
-    }
-
-    /**
-     * Test if the given rectangle is fully inside the outline.
-     * This one hinges on an assumption! That the number of line segments crossed is the same for points on the same
-     * row/column.
-     */
-    fun rectangleInside(rect: Rectangle, outline: List<Pair<Coor, Coor>>): Boolean {
-        // Suppose you have the rectangle that is spun up by (5,2)-(3,7)
-        // Then the other corners of the rectangle are (5,7) and (3,2).
-        val left = min(rect.p.col, rect.q.col)
-        val right = max(rect.p.col, rect.q.col)
-        val top = min(rect.p.row, rect.q.row)
-        val bottom = max(rect.p.row, rect.q.row)
-
-        val linesBeforeLeft =  outline
-            .filter { line -> line.first.col == line.second.col } // Vertical line
-            .filter { line -> line.first.col < left }
-            //TODO?+ .filter { line -> pointBetween(point.row, line.first.row, line.second.row) }
-        val linesBeforeRight = outline
-            .filter { line -> line.first.col == line.second.col } // Vertical line
-            .filter { line -> line.first.col < right }
-            //TODO?+
-
-        val linesAboveTop = outline
-            .filter { line -> line.first.row == line.second.row } // Horizontal line
-            .filter { line -> line.first.row < top }
-            //TODO?+
-
-        val linesBelowBottom = outline
-            .filter { line -> line.first.row == line.second.row } // Horizontal line
-            .filter { line -> line.first.row < bottom }
-            //TODO?+
-
-        // APPROXIMATION! NOT A SOLUTION YET.
-        return linesBeforeLeft == linesBeforeRight && linesAboveTop == linesBelowBottom
     }
 
     fun pointBetween(point: Long, startRange: Long, endRange: Long) =
